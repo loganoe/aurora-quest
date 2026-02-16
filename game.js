@@ -135,10 +135,10 @@ const gameState = {
         direction: 'down',
         animFrame: 0,
         attacking: false,
-        attackCooldown: 0
+        attackCooldown: 0,
+        equipment: { weapon: null, armor: null }
     },
     inventory: [],
-    equipment: { weapon: null, armor: null },
     quests: [],
     activeQuest: null,
     time: 360, // 6:00 AM in minutes
@@ -176,7 +176,7 @@ class Enemy extends Entity {
         const stats = ENEMY_TYPES[enemyType];
         this.health = stats.health;
         this.maxHealth = stats.health;
-        this.attack = stats.attack;
+        this.attackDamage = stats.attack;
         this.speed = stats.speed;
         this.xpReward = stats.xp;
         this.goldReward = stats.gold;
@@ -227,7 +227,7 @@ class Enemy extends Entity {
     }
     
     attack() {
-        const damage = Math.max(1, this.attack - gameState.player.defense);
+        const damage = Math.max(1, this.attackDamage - gameState.player.defense);
         gameState.player.health -= damage;
         this.attackCooldown = 1;
         spawnParticles(gameState.player.x, gameState.player.y, '#ff0000', 5);

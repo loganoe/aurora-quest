@@ -87,7 +87,7 @@ class PerlinNoise {
 // ============== WORLD GENERATION ==============
 const terrainNoise = new PerlinNoise(12345);
 const biomeNoise = new PerlinNoise(67890);
-const detailNoise = new PerlinedRandom(11111);
+const detailNoise = new SeededRandom(11111);
 
 const BIOMES = {
     PLAINS: { name: 'Plains', color: '#4a7c4e', treeChance: 0.02, enemyChance: 0.01 },

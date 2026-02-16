@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurora Quest - 2D RPG</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #0a0a0f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+        
+        #game-container {
+            position: relative;
+            border: 3px solid #2a2a3a;
+            border-radius: 8px;
+            box-shadow: 0 0 50px rgba(100, 150, 255, 0.3);
+        }
+        
+        #gameCanvas {
+            display: block;
+            image-rendering: pixelated;
+        }
+        
+        #ui-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            font-size: 14px;
+            text-shadow: 2px 2px 0 #000;
+            pointer-events: none;
+        }
+        
+        #health-bar-container {
+            width: 200px;
+            height: 20px;
+            background: #1a1a2e;
+            border: 2px solid #4a4a6a;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+        
+        #health-bar {
+            height: 100%;
+            background: linear-gradient(to bottom, #ff6b6b, #c92a2a);
+            transition: width 0.3s;
+        }
+        
+        #stamina-bar-container {
+            width: 200px;
+            height: 12px;
+            background: #1a1a2e;
+            border: 2px solid #4a4a6a;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        #stamina-bar {
+            height: 100%;
+            background: linear-gradient(to bottom, #69db7c, #2f9e44);
+            transition: width 0.1s;
+        }
+        
+        #minimap-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 150px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #4a4a6a;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        #minimap {
+            width: 100%;
+            height: 100%;
+        }
+        
+        #inventory-panel {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px;
+            border-radius: 8px;
+            border: 2px solid #4a4a6a;
+        }
+        
+        .inv-slot {
+            width: 50px;
+            height: 50px;
+            background: #1a1a2e;
+            border: 2px solid #3a3a5a;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            position: relative;
+        }
+        
+        .inv-slot.active {
+            border-color: #ffd43b;
+            box-shadow: 0 0 10px rgba(255, 212, 59, 0.5);
+        }
+        
+        .inv-count {
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+            font-size: 10px;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000;
+        }
+        
+        #dialog-box {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            background: rgba(10, 10, 20, 0.95);
+            border: 3px solid #6a6a8a;
+            border-radius: 8px;
+            padding: 15px 20px;
+            color: #fff;
+            display: none;
+        }
+        
+        #dialog-name {
+            color: #ffd43b;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        #dialog-text {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        #quest-panel {
+            position: absolute;
+            top: 80px;
+            right: 10px;
+            width: 200px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #4a4a6a;
+            border-radius: 4px;
+            padding: 10px;
+            color: #fff;
+            font-size: 12px;
+        }
+        
+        #quest-title {
+            color: #ffd43b;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .quest-objective {
+            padding: 3px 0;
+            opacity: 0.7;
+        }
+        
+        .quest-objective.completed {
+            color: #69db7c;
+            text-decoration: line-through;
+            opacity: 1;
+        }
+        
+        #time-display {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 12px;
+            text-shadow: 2px 2px 0 #000;
+        }
+        
+        #controls-hint {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            color: #888;
+            font-size: 11px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="960" height="640"></canvas>
+        
+        <div id="ui-overlay">
+            <div>Level: <span id="player-level">1</span></div>
+            <div id="health-bar-container">
+                <div id="health-bar" style="width: 100%"></div>
+            </div>
+            <div id="stamina-bar-container">
+                <div id="stamina-bar" style="width: 100%"></div>
+            </div>
+            <div style="margin-top: 5px;">Gold: <span id="gold-count">0</span></div>
+        </div>
+        
+        <div id="time-display">Day 1 - 6:00 AM</div>
+        
+        <div id="minimap-container">
+            <canvas id="minimap" width="150" height="150"></canvas>
+        </div>
+        
+        <div id="quest-panel">
+            <div id="quest-title">No Active Quest</div>
+            <div id="quest-objectives"></div>
+        </div>
+        
+        <div id="inventory-panel"></div>
+        
+        <div id="dialog-box">
+            <div id="dialog-name"></div>
+            <div id="dialog-text"></div>
+        </div>
+        
+        <div id="controls-hint">
+            WASD/Arrows: Move<br>
+            Space: Interact/Attack<br>
+            E: Open Chest<br>
+            I: Inventory<br>
+            M: Map
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
